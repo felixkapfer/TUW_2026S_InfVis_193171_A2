@@ -1,0 +1,233 @@
+/* ============================================================================
+ * style.css - InfoVis VU 2026, Exercise 2
+ * ==========================================================================*/
+
+:root {
+    --bg-page:        #fafafa;
+    --bg-card:        #ffffff;
+    --color-text:     #222;
+    --color-muted:    #666;
+    --color-accent:   #e63946;
+    --color-border:   #d1d5db;
+    --shadow:         rgba(0, 0, 0, 0.06) 0 1px 2px 0,
+                      rgba(0, 0, 0, 0.04) 0 1px 1px -1px;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg-page);
+    color: var(--color-text);
+    font-family: "Segoe UI", Calibri, Arial, Helvetica, sans-serif;
+    font-size: 14px;
+}
+
+/* ---------- header ---------- */
+.header {
+    padding: 18px 24px 8px 24px;
+    border-bottom: 1px solid var(--color-border);
+    background: var(--bg-card);
+}
+.header h1 {
+    margin: 0 0 2px 0;
+    font-size: 1.5em;
+    font-weight: 600;
+}
+.subheader {
+    margin: 0;
+    color: var(--color-muted);
+}
+.student {
+    margin: 4px 0 0 0;
+    color: var(--color-muted);
+    font-size: 0.9em;
+}
+
+/* ---------- main container (map + scatterplot) ---------- */
+.main_container {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 12px;
+    padding: 0;
+    background: var(--bg-card);
+    border: 1px solid var(--color-border);
+    box-shadow: var(--shadow);
+}
+.container_l, .container_r {
+    padding: 8px 12px;
+    box-sizing: border-box;
+}
+.container_l { width: 820px; }
+.container_r { flex: 1; min-width: 540px; }
+
+.chart_title {
+    font-size: 0.95em;
+    font-weight: 600;
+    color: var(--color-muted);
+    padding: 4px 0 6px 4px;
+}
+
+/* ---------- controls ---------- */
+.controls_container {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 32px;
+    margin: 0 12px 12px 12px;
+    padding: 12px 16px;
+    background: var(--bg-card);
+    border: 1px solid var(--color-border);
+    box-shadow: var(--shadow);
+}
+.control_group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.control_group label {
+    font-weight: 600;
+    color: var(--color-muted);
+}
+.dropdown {
+    padding: 4px 6px;
+    font-size: 0.95em;
+    min-width: 320px;
+}
+.slider {
+    width: 220px;
+}
+.year_label {
+    font-weight: 600;
+    min-width: 40px;
+    color: var(--color-text);
+}
+.btn {
+    padding: 6px 12px;
+    background: #fff;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    cursor: pointer;
+}
+.btn:hover {
+    background: #f1f5f9;
+}
+
+/* ---------- timeseries ---------- */
+.timeseries_container {
+    margin: 0 12px 24px 12px;
+    padding: 8px 12px;
+    background: var(--bg-card);
+    border: 1px solid var(--color-border);
+    box-shadow: var(--shadow);
+}
+
+/* ---------- shared chart styling ---------- */
+.axis path,
+.axis line {
+    stroke: #999;
+    shape-rendering: crispEdges;
+}
+.axis text {
+    fill: #444;
+    font-size: 11px;
+}
+.axis_label {
+    fill: var(--color-muted);
+    font-size: 12px;
+    font-weight: 500;
+}
+
+/* ---------- map ---------- */
+path.country {
+    cursor: pointer;
+    transition: stroke 0.15s, stroke-width 0.15s, fill 0.3s;
+}
+path.country:hover {
+    stroke: var(--color-accent) !important;
+    stroke-width: 1.6 !important;
+}
+
+/* ---------- scatter ---------- */
+circle.dot {
+    cursor: pointer;
+    transition: r 0.15s, stroke 0.15s, stroke-width 0.15s;
+}
+text.dot_label {
+    font-size: 9px;
+    fill: #555;
+    pointer-events: none;
+    user-select: none;
+}
+.brush .selection {
+    fill: #5470c6;
+    fill-opacity: 0.12;
+    stroke: #5470c6;
+    stroke-dasharray: 3 2;
+}
+
+/* ---------- timeseries ---------- */
+path.country_line {
+    fill: none;
+    stroke-width: 2px;
+    transition: d 0.3s;
+}
+line.year_marker {
+    stroke: var(--color-accent);
+    stroke-width: 1.5px;
+    stroke-dasharray: 4 3;
+    opacity: 0.8;
+}
+.ts_title {
+    font-size: 13px;
+    fill: var(--color-text);
+    font-weight: 600;
+}
+.ts_legend text {
+    font-size: 11px;
+    fill: #333;
+    dominant-baseline: middle;
+}
+
+/* ---------- legend (map) ---------- */
+.legend_min, .legend_max, .legend_title {
+    font-size: 10px;
+    fill: #555;
+}
+
+/* ---------- tooltip ---------- */
+.tooltip {
+    position: absolute;
+    pointer-events: none;
+    background: rgba(255, 255, 255, 0.97);
+    color: #222;
+    padding: 8px 10px;
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+    font-size: 12px;
+    max-width: 360px;
+    z-index: 100;
+    transition: opacity 0.15s;
+}
+.tt_title {
+    font-weight: 700;
+    margin-bottom: 4px;
+    color: var(--color-accent);
+}
+.tt_table {
+    border-collapse: collapse;
+    width: 100%;
+}
+.tt_table tr td {
+    padding: 1px 4px;
+    vertical-align: top;
+}
+.tt_var {
+    color: #555;
+    max-width: 240px;
+}
+.tt_val {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+}
