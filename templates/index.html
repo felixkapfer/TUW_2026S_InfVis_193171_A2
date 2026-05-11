@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>InfoVis VU 2026 - Exercise 2</title>
+
+    <link rel="stylesheet" type="text/css"
+          href="{{ url_for('static', filename='styles/style.css') }}">
+
+    <!-- d3 v7 (as defined in the scaffold) and topojson client -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.0/topojson.min.js"></script>
+
+    <!-- Application modules -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/controls.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/map.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/scatter.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/timeseries.js') }}"></script>
+</head>
+<body>
+
+<div class="header">
+    <h1>InfoVis VU 2026 &mdash; Exercise 2</h1>
+    <p class="subheader">Multiple Coordinated Views &mdash; PCA, Choropleth Map, Time Series</p>
+    <p class="student">
+        <strong>Name:</strong> &lt;Ben Schill&gt; &nbsp;|&nbsp;
+        <strong>Matrikelnummer:</strong> &lt;xxxxx&gt;
+	<br>
+
+	<strong>Name:</strong>&lt; Maximilian Kleinegger&gt;  &nbsp;|&nbsp;
+	<strong>Matrikelnummer:</strong> &lt;xxxxx&gt;
+	<br>
+
+	<strong>Name:</strong> &lt;Felix Kapfer&gt;&nbsp;|&nbsp;
+	<strong>Matrikelnummer:</strong> &lt;12429669&gt;
+    </p>
+</div>
+
+<!-- Top row: choropleth map + PCA scatterplot -->
+<div id="main_container" class="main_container">
+    <div class="container_l">
+        <div class="chart_title">Choropleth Map</div>
+        <svg id="svg_map"></svg>
+    </div>
+    <div class="container_r">
+        <div class="chart_title">PCA Scatterplot (most recent year)</div>
+        <svg id="svg_scatter"></svg>
+    </div>
+</div>
+
+<!-- Controls: indicator dropdown + year slider -->
+<div id="controls_container" class="controls_container">
+    <div class="control_group">
+        <label for="indicator_change">Indicator:</label>
+        <select id="indicator_change" class="dropdown"></select>
+    </div>
+    <div class="control_group">
+        <label for="year_slider">Year:</label>
+        <input id="year_slider" type="range" class="slider">
+        <span id="year_label" class="year_label"></span>
+    </div>
+    <div class="control_group">
+        <button id="clear_selection" class="btn">Clear selection</button>
+    </div>
+</div>
+
+<!-- Bottom: time series view -->
+<div id="timeseries_container" class="timeseries_container">
+    <div class="chart_title" id="timeseries_title">
+        Time series &mdash; click a country on the map or brush in the scatterplot
+    </div>
+    <svg id="svg_line_plot"></svg>
+</div>
+
+<!-- Reusable tooltip for the map (Bonus task) -->
+<div id="map_tooltip" class="tooltip" style="opacity: 0;"></div>
+
+<!-- Bootstrap the application with the data injected by Flask / Jinja2 -->
+<script>
+    // The payload contains: data, pca, indicators, year_min, year_max.
+    const payload = {{ payload | safe }};
+    document.addEventListener("DOMContentLoaded", function () {
+        App.init(payload);
+    });
+</script>
+
+</body>
+</html>
