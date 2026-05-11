@@ -1,0 +1,7 @@
+[project]
+name = "tuw-2026s-infvis-193171-a2"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = []
