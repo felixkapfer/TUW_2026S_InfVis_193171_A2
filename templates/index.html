@@ -27,17 +27,25 @@
         <svg id="svg_plot"></svg>
     </div>
 </div> 
-<div id = "dropdown_div" class="dd_container">
-    <label>Indicator:</label>
-    <select id="indicator_change" class="dropdown"></select>
+<div id="dropdown_div" class="dd_container">
+    <label for="indicator_change">Indicator:</label>
+    <select id="indicator_change" name="indicator_change" class="dropdown">
+        {% for indicator in indicators %}
+            <option value="{{ indicator }}"
+                {% if indicator == selected_indicator %}selected{% endif %}>
+                {{ indicator }}
+            </option>
+        {% endfor %}
+    </select>
 </div>
-<div id="svg_line_plot" class="svg_line_plot" \>
-
+<div id="svg_line_plot" class="svg_line_plot"></div>
 
 <script>
     let data = {{ data | safe }};
+    let pca_data = {{ pca | safe }};
+    let years = {{ years | safe }};
     //initMap();
-    initScatterPlot(data);
+    initScatterPlot(data, pca_data, years);
 </script>
 
 </body>

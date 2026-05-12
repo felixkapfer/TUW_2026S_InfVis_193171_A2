@@ -29,9 +29,11 @@ def data():
     for (name, code), group in df.groupby(['Name', 'Code']):
         result[code]["name"] = name
         for column in df.columns:
-            if column not in ['Name', 'Code']:
+            if column not in ['Name', 'Code', 'Year']:
                 result[code][column].extend(group[column].tolist())
 
+    years = [int(y) for y in sorted(df['Year'].unique())]    
+    columns = [column for column in df.columns if column not in ['Name', 'Code', 'Year']]
 
     # Select only the most recent year
     latest_df = df[df['Year'] == df['Year'].max()]
@@ -49,7 +51,7 @@ def data():
         'PC2': X_pca[:, 1]
     })
 
-    return render_template("index.html", data=json.dumps({"data": result, "pca": pca_df.to_dict(orient='records')}))
+    return render_template("index.html", data=json.dumps(result), pca=json.dumps(pca_df.to_dict(orient='records')), years=list(years), indicators=list(columns))
 
 if __name__ == '__main__':
     app.run()
