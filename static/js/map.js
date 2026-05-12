@@ -8,6 +8,8 @@ let DATA_PCA = null;
 let DATA_YEARS = null;
 let DATA_COUNTRIES = null;
 
+let CLICKED = null;
+
 async function initScatterPlot(data, pca, years) {
     CODES = Object.entries(data).map(d => d[0]);
     DATA_PCA = pca;
@@ -45,7 +47,9 @@ async function initScatterPlot(data, pca, years) {
                 // Check if current country is in our list
                 return CODES.includes(d.properties.id) ? "lightgrey" : "white";
             })
-            .on("mouseover", (event, d) => updateMap(d));;
+            .on("mouseover", (event, d) => updateMap(d))
+            .on("mouseout", (event, d) => updateMapOut(d))
+            .on("click", (event, d) => onMouseClick(event, d));
        
 
     var margin = {top: 10, right: 30, bottom: 30, left: 60},
@@ -86,7 +90,8 @@ async function initScatterPlot(data, pca, years) {
         .attr("r", 5)
         .attr("fill", "#21908dff")
         .style("opacity", 0.7)
-        .on("mouseover", (event, d) => updateChart(d));
+        .on("mouseover", (event, d) => updateChart(d))
+        .on("mouseout", (event, d) => updateMapOut(d));
 
     // Function that is triggered when brushing is performed
     function updateChart(event) {
@@ -109,6 +114,8 @@ async function initScatterPlot(data, pca, years) {
     }
 
     function updateMap(event) {
+        if (!CODES.includes(event.properties.id)) return;
+
         myCircle.classed("selected", function(d){
             return event.properties.id == d.Code;
         });
@@ -124,49 +131,199 @@ async function initScatterPlot(data, pca, years) {
             });
     }
 
+    function updateMapOut(event) {
+        if (CLICKED) return;
+
+        myCircle.classed("selected", function(d){
+            return false;
+        });
+
+        targetedCountryCodes = []
+        // update map to select all points that are effected
+        svg.selectAll('path')
+            .attr('fill', d => {
+                if (targetedCountryCodes.includes(d.properties.id) && CODES.includes(d.properties.id)) return "red";
+
+                return CODES.includes(d.properties.id) ? "lightgrey" : "white";
+            });
+
+        d3.select("#svg_line_plot")
+            .selectAll("svg")
+            .data([null])
+            .join("svg")
+            .attr("opacity", "0.0")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom);
+
+        }
+
+    function onMouseClick(event, d) {
+        CLICKED = true;
+    console.log(event, d);
+
+   
+
+    // Get data
+    const rawSeries =
+        DATA_COUNTRIES[d.properties.id][
+            d3.select("#indicator_change").property("value")
+        ];
+
+    const series = DATA_YEARS.map((year, i) => ({
+        date: new Date(+year, 0, 1),
+        value: rawSeries[i]
+    }));
+
+    // Select existing svg or create once
+    const svg = d3.select("#svg_line_plot")
+        .selectAll("svg")
+        .data([null])
+        .join("svg")
+        .attr("opacity", "1.0")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom);
+
+    // Main group
+    const g = svg.selectAll("g.main")
+        .data([null])
+        .join("g")
+        .attr("class", "main")
+        .attr("transform", `translate(${margin.left},${margin.top})`);
+
+    // X scale
+    const x = d3.scaleTime()
+        .domain(d3.extent(series, d => d.date))
+        .range([0, width]);
+
+    // Y scale
+    const y = d3.scaleLinear()
+        .domain([0, d3.max(series, d => d.value)])
+        .nice()
+        .range([height, 0]);
+
+    // Update X axis
+    g.selectAll(".x-axis")
+        .data([null])
+        .join("g")
+        .attr("class", "x-axis")
+        .attr("transform", `translate(0, ${height})`)
+        .call(
+            d3.axisBottom(x)
+                .ticks(d3.timeYear.every(5))
+                .tickFormat(d3.timeFormat("%Y"))
+        );
+
+    // Update Y axis
+    g.selectAll(".y-axis")
+        .data([null])
+        .join("g")
+        .attr("class", "y-axis")
+        .call(d3.axisLeft(y));
+
+    // Line generator
+    const line = d3.line()
+        .x(d => x(d.date))
+        .y(d => y(d.value));
+
+    // Update line
+    g.selectAll(".line")
+        .data([series])
+        .join("path")
+        .attr("class", "line")
+        .attr("fill", "none")
+        .attr("stroke", "steelblue")
+        .attr("stroke-width", 1.5)
+        .attr("d", line);
+    }
+
+    d3.select("#indicator_change")
+        .on("change", function () {
+            const selectedValue = d3.select(this).property("value");
+
+   
+    redCountries = [];
     
-const svg3 = d3.select("#svg_line_plot")
-    .append("svg")
-    .style("border", "2px solid red")
-    .attr("width", 800)
-    .attr("height", 500);
+    d3.select("#svg_map").selectAll("path")
+    .filter(function () {
+        return d3.select(this).attr("fill") === "red";
+    })
+    .each(function (d) {
+        redCountries.push(d.properties.id);
+    });
 
-const rawSeries = DATA_COUNTRIES["AUT"]["Agricultural raw materials imports (% of merchandise imports)"];
-const series = DATA_YEARS.map((year, i) => ({
-    date: new Date(+year, 0, 1),
-    value: +rawSeries[i]
-})).filter(d => !isNaN(d.value));
+    // console.log("Red countries:", redCountries);    
 
-console.log(series);
+    // Get data
+    const rawSeries =
+        DATA_COUNTRIES[redCountries[0]][
+            d3.select("#indicator_change").property("value")
+        ];
 
-const x2 = d3.scaleTime()
-    .domain(d3.extent(series, d => d.date))
-    .range([0, width]);
+    const series = DATA_YEARS.map((year, i) => ({
+        date: new Date(+year, 0, 1),
+        value: rawSeries[i]
+    }));
 
-svg3.append("g")
-    .attr("transform", `translate(0, ${height})`)
-    .call(
-        d3.axisBottom(x2)
-          .ticks(d3.timeYear.every(5))
-          .tickFormat(d3.timeFormat("%Y"))
-    );
+    // Select existing svg or create once
+    const svg = d3.select("#svg_line_plot")
+        .selectAll("svg")
+        .data([null])
+        .join("svg")
+        .attr("opacity", "1.0")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom);
 
-const y2 = d3.scaleLinear()
-    .domain([0, d3.max(series, d => d.value)])
-    .nice()
-    .range([height, 0]);
+    // Main group
+    const g = svg.selectAll("g.main")
+        .data([null])
+        .join("g")
+        .attr("class", "main")
+        .attr("transform", `translate(${margin.left},${margin.top})`);
 
-svg3.append("g")
-    .call(d3.axisLeft(y2));
+    // X scale
+    const x = d3.scaleTime()
+        .domain(d3.extent(series, d => d.date))
+        .range([0, width]);
 
-svg3.append("path")
-    .datum(series)
-    .attr("fill", "none")
-    .attr("stroke", "red")
-    .attr("stroke-width", 5)
-    .attr("d", d3.line()
-        .x(d => x2(d.date))
-        .y(d => y2(d.value))
-    );
-    
+    // Y scale
+    const y = d3.scaleLinear()
+        .domain([0, d3.max(series, d => d.value)])
+        .nice()
+        .range([height, 0]);
+
+    // Update X axis
+    g.selectAll(".x-axis")
+        .data([null])
+        .join("g")
+        .attr("class", "x-axis")
+        .attr("transform", `translate(0, ${height})`)
+        .call(
+            d3.axisBottom(x)
+                .ticks(d3.timeYear.every(5))
+                .tickFormat(d3.timeFormat("%Y"))
+        );
+
+    // Update Y axis
+    g.selectAll(".y-axis")
+        .data([null])
+        .join("g")
+        .attr("class", "y-axis")
+        .call(d3.axisLeft(y));
+
+    // Line generator
+    const line = d3.line()
+        .x(d => x(d.date))
+        .y(d => y(d.value));
+
+    // Update line
+    g.selectAll(".line")
+        .data([series])
+        .join("path")
+        .attr("class", "line")
+        .attr("fill", "none")
+        .attr("stroke", "steelblue")
+        .attr("stroke-width", 1.5)
+        .attr("d", line);
+    });
+
 }
