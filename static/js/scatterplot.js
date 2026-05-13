@@ -78,7 +78,12 @@ function initScatterPlot(data_pca) {
     .attr("cy", (d) => y_axis(d.PC2))
     .attr("r", 6)
     .attr("stroke", "#333")
-    .on("mouseover", (event, d) => onMouseOverScatterPlot(d));
+    .on("mouseover", (event, d) => {
+      onMouseOverScatterPlot(d);
+      showTooltip(event, d);
+    })
+    .on("mousemove", (event) => moveTooltip(event))
+    .on("mouseout", hideTooltip);
 }
 
 // TODO: keep selected points when changing years or dropdown

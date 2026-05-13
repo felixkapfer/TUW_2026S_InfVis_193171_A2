@@ -129,7 +129,7 @@ function initTooltip() {
 function showTooltip(event, countryFeature) {
 
   // Get the country ID
-  const id = countryFeature.properties.id;
+  const id = countryFeature.properties ? countryFeature.properties.id : countryFeature.Code;  // Handle both map and scatterplot cases
   if (!countryData[id]) return;               // If no data for this country, do not show tooltip
 
 
