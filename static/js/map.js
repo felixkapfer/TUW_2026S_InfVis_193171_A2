@@ -20,7 +20,7 @@ function initMap(data) {
   d3.json("../static/data/world-topo.json").then((countries) => {
     let projection = d3
       .geoEqualEarth()
-      .scale(180)
+      .scale(130)
       .translate([mapWidth / 2, mapHeight / 2]);
 
     let path = d3.geoPath().projection(projection);
