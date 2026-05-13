@@ -1,329 +1,106 @@
-let mapWidth = 800;
+/** global variables */
+let mapWidth = 700;
 let mapHeight = 500;
-let map = null;
 let mapData = null;
 
-let CODES = null;
-let DATA_PCA = null;
-let DATA_YEARS = null;
-let DATA_COUNTRIES = null;
+let codes = null;
+let countryData = null;
 
-let CLICKED = null;
+/** INIT METHODS */
 
-async function initScatterPlot(data, pca, years) {
-    CODES = Object.entries(data).map(d => d[0]);
-    DATA_PCA = pca;
-    DATA_YEARS = years;
-    DATA_COUNTRIES = data;
+function initMap(data) {
+  codes = Object.entries(data).map((d) => d[0]);
+  countryData = data;
 
-    countries = await d3.json("../static/data/world-topo.json");
+  d3.json("../static/data/world-topo.json").then((countries) => {
+    let projection = d3
+      .geoEqualEarth()
+      .scale(180)
+      .translate([mapWidth / 2, mapHeight / 2]);
 
-    // defines the map projection method and scales the map within the SVG
-        let projection = d3.geoEqualEarth()
-            .scale(180)
-            .translate([mapWidth / 2, mapHeight / 2]);
+    let path = d3.geoPath().projection(projection);
 
-        // generates the path coordinates from topojson
-        let path = d3.geoPath()
-            .projection(projection);
+    let svg = d3
+      .select("#svg_map")
+      .attr("width", mapWidth)
+      .attr("height", mapHeight);
 
-        // configures the SVG element
-        let svg = d3.select("#svg_map")
-            .attr("width", mapWidth)
-            .attr("height", mapHeight);
+    mapData = topojson.feature(countries, countries.objects.countries).features;
 
-        // map geometry
-        mapData = topojson.feature(countries, countries.objects.countries).features;
+    let map = svg
+      .append("g")
+      .selectAll("path")
+      .data(mapData)
+      .enter()
+      .append("path")
+      .attr("d", path)
+      .attr("stroke", "black")
+      .attr("stroke-width", 0.5)
+      .attr("fill", "white")
+      .on("mouseover", (event, d) => onMouseOverMap(d))
+      .on("click", (event, d) => updateChart([d.properties.id]));
 
-        // generates and styles the SVG path
-        map = svg.append("g")
-            .selectAll('path')
-            .data(mapData)
-            .enter().append('path')
-            .attr('d', path)
-            .attr('stroke', 'black')
-            .attr('stroke-width', 0.5)
-            .attr('fill', d => {
-                // Check if current country is in our list
-                return CODES.includes(d.properties.id) ? "lightgrey" : "white";
-            })
-            .on("mouseover", (event, d) => updateMap(d))
-            .on("mouseout", (event, d) => updateMapOut(d))
-            .on("click", (event, d) => onMouseClick(event, d));
-       
+    updateMapColors(
+      +d3.select("#yearSlider").property("value"),
+      d3.select("#indicator_change").property("value"),
+    );
+  });
+}
 
-    var margin = {top: 10, right: 30, bottom: 30, left: 60},
-    width = 460 - margin.left - margin.right,
-    height = 400 - margin.top - margin.bottom;
+function updateMapColors(year, indicator) {
+  const YEAR_IDX = year - d3.select("#yearSlider").property("min");
+  const VALUES = codes
+    .map((code) => +countryData[code][indicator][YEAR_IDX])
+    .filter((v) => !isNaN(v));
 
-    var svg2 = d3.select("#svg_plot")
-        .attr("width", width + margin.left + margin.right)
-        .attr("height", height + margin.top + margin.bottom)
-        .append("g")
-            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+  colorScale = d3
+    .scaleSequential((t) => d3.interpolateBlues(0.25 + t * 0.75))
+    .domain(d3.extent(VALUES));
 
-    // Add X axis
-    var x = d3.scaleLinear()
-        .domain(d3.extent(DATA_PCA, d => d.PC1))
-        .range([0, width]);
+  d3.select("#svg_map")
+    .selectAll("path")
+    .attr("fill", (d) => getColor(d.properties.id, indicator, YEAR_IDX));
 
-    svg2.append("g")
-        .attr("transform", "translate(0," + height + ")")
-        .call(d3.axisBottom(x));
+  d3.select("#svg_plot")
+    .selectAll("circle")
+    .attr("fill", (d) => getColor(d.Code, indicator, YEAR_IDX));
+}
 
-    // Add Y axis
-    var y = d3.scaleLinear()
-        .domain(d3.extent(DATA_PCA, d => d.PC2))
-        .range([height, 0]);
+/** EVENT HANDLERS */
+function onMouseOverMap(event) {
+  if (!codes.includes(event.properties.id)) return;
 
-    svg2.append("g")
-        .call(d3.axisLeft(y));
+  d3.select("#svg_plot")
+    .selectAll("circle")
+    .classed("selected", (d) => event.properties.id == d.Code);
 
-    // Add dots
-    var myCircle = svg2.append('g')
-        .selectAll("circle")
-        .data(DATA_PCA)
-        .enter()
-        .append("circle")
-        .attr("cx", function (d) { return x(d.PC1); } )
-        .attr("cy", function (d) { return y(d.PC2); } )
-        .attr("r", 5)
-        .attr("fill", "#21908dff")
-        .style("opacity", 0.7)
-        .on("mouseover", (event, d) => updateChart(d))
-        .on("mouseout", (event, d) => updateMapOut(d));
-
-    // Function that is triggered when brushing is performed
-    function updateChart(event) {
-        myCircle.classed("selected", function(d){
-            return event.PC1 == d.PC1 && event.PC2 == d.PC2;
-        });
-
-        // filter all points that are effected
-        let brushedPoints = DATA_PCA.filter(d => event.PC1 == d.PC1 && event.PC2 == d.PC2);
-       
-        let targetedCountryCodes = [...new Set(brushedPoints.map(d => d.Code))] // get unique country codes
-
-        // update map to select all points that are effected
-        svg.selectAll('path')
-            .attr('fill', d => {
-                if (targetedCountryCodes.includes(d.properties.id)) return "red";
-
-                return CODES.includes(d.properties.id) ? "lightgrey" : "white";
-            });
-    }
-
-    function updateMap(event) {
-        if (!CODES.includes(event.properties.id)) return;
-
-        myCircle.classed("selected", function(d){
-            return event.properties.id == d.Code;
-        });
-
-
-        targetedCountryCodes = [event.properties.id]
-        // update map to select all points that are effected
-        svg.selectAll('path')
-            .attr('fill', d => {
-                if (targetedCountryCodes.includes(d.properties.id) && CODES.includes(d.properties.id)) return "red";
-
-                return CODES.includes(d.properties.id) ? "lightgrey" : "white";
-            });
-    }
-
-    function updateMapOut(event) {
-        if (CLICKED) return;
-
-        myCircle.classed("selected", function(d){
-            return false;
-        });
-
-        targetedCountryCodes = []
-        // update map to select all points that are effected
-        svg.selectAll('path')
-            .attr('fill', d => {
-                if (targetedCountryCodes.includes(d.properties.id) && CODES.includes(d.properties.id)) return "red";
-
-                return CODES.includes(d.properties.id) ? "lightgrey" : "white";
-            });
-
-        d3.select("#svg_line_plot")
-            .selectAll("svg")
-            .data([null])
-            .join("svg")
-            .attr("opacity", "0.0")
-            .attr("width", width + margin.left + margin.right)
-            .attr("height", height + margin.top + margin.bottom);
-
-        }
-
-    function onMouseClick(event, d) {
-        CLICKED = true;
-    console.log(event, d);
-
-   
-
-    // Get data
-    const rawSeries =
-        DATA_COUNTRIES[d.properties.id][
-            d3.select("#indicator_change").property("value")
-        ];
-
-    const series = DATA_YEARS.map((year, i) => ({
-        date: new Date(+year, 0, 1),
-        value: rawSeries[i]
-    }));
-
-    // Select existing svg or create once
-    const svg = d3.select("#svg_line_plot")
-        .selectAll("svg")
-        .data([null])
-        .join("svg")
-        .attr("opacity", "1.0")
-        .attr("width", width + margin.left + margin.right)
-        .attr("height", height + margin.top + margin.bottom);
-
-    // Main group
-    const g = svg.selectAll("g.main")
-        .data([null])
-        .join("g")
-        .attr("class", "main")
-        .attr("transform", `translate(${margin.left},${margin.top})`);
-
-    // X scale
-    const x = d3.scaleTime()
-        .domain(d3.extent(series, d => d.date))
-        .range([0, width]);
-
-    // Y scale
-    const y = d3.scaleLinear()
-        .domain([0, d3.max(series, d => d.value)])
-        .nice()
-        .range([height, 0]);
-
-    // Update X axis
-    g.selectAll(".x-axis")
-        .data([null])
-        .join("g")
-        .attr("class", "x-axis")
-        .attr("transform", `translate(0, ${height})`)
-        .call(
-            d3.axisBottom(x)
-                .ticks(d3.timeYear.every(5))
-                .tickFormat(d3.timeFormat("%Y"))
-        );
-
-    // Update Y axis
-    g.selectAll(".y-axis")
-        .data([null])
-        .join("g")
-        .attr("class", "y-axis")
-        .call(d3.axisLeft(y));
-
-    // Line generator
-    const line = d3.line()
-        .x(d => x(d.date))
-        .y(d => y(d.value));
-
-    // Update line
-    g.selectAll(".line")
-        .data([series])
-        .join("path")
-        .attr("class", "line")
-        .attr("fill", "none")
-        .attr("stroke", "steelblue")
-        .attr("stroke-width", 1.5)
-        .attr("d", line);
-    }
-
-    d3.select("#indicator_change")
-        .on("change", function () {
-            const selectedValue = d3.select(this).property("value");
-
-   
-    redCountries = [];
-    
-    d3.select("#svg_map").selectAll("path")
-    .filter(function () {
-        return d3.select(this).attr("fill") === "red";
-    })
-    .each(function (d) {
-        redCountries.push(d.properties.id);
+  d3.select("#svg_map")
+    .selectAll("path")
+    .attr("fill", (d) => {
+      if (d.properties.id == event.properties.id) return "red";
+      return getColor(
+        d.properties.id,
+        d3.select("#indicator_change").property("value"),
+        +d3.select("#yearSlider").property("value") -
+          d3.select("#yearSlider").property("min"),
+      );
     });
+}
 
-    // console.log("Red countries:", redCountries);    
+// TODO: delete?
+function onMouseOut() {
+  d3.select("#svg_plot").selectAll("circle").classed("selected", false);
 
-    // Get data
-    const rawSeries =
-        DATA_COUNTRIES[redCountries[0]][
-            d3.select("#indicator_change").property("value")
-        ];
+  updateMapColors(
+    +d3.select("#yearSlider").property("value"),
+    d3.select("#indicator_change").property("value"),
+  );
+}
 
-    const series = DATA_YEARS.map((year, i) => ({
-        date: new Date(+year, 0, 1),
-        value: rawSeries[i]
-    }));
+/** HELPER FUNCTIONS */
+function getColor(code, indicator, yearIdx) {
+  if (!codes.includes(code)) return "white";
 
-    // Select existing svg or create once
-    const svg = d3.select("#svg_line_plot")
-        .selectAll("svg")
-        .data([null])
-        .join("svg")
-        .attr("opacity", "1.0")
-        .attr("width", width + margin.left + margin.right)
-        .attr("height", height + margin.top + margin.bottom);
-
-    // Main group
-    const g = svg.selectAll("g.main")
-        .data([null])
-        .join("g")
-        .attr("class", "main")
-        .attr("transform", `translate(${margin.left},${margin.top})`);
-
-    // X scale
-    const x = d3.scaleTime()
-        .domain(d3.extent(series, d => d.date))
-        .range([0, width]);
-
-    // Y scale
-    const y = d3.scaleLinear()
-        .domain([0, d3.max(series, d => d.value)])
-        .nice()
-        .range([height, 0]);
-
-    // Update X axis
-    g.selectAll(".x-axis")
-        .data([null])
-        .join("g")
-        .attr("class", "x-axis")
-        .attr("transform", `translate(0, ${height})`)
-        .call(
-            d3.axisBottom(x)
-                .ticks(d3.timeYear.every(5))
-                .tickFormat(d3.timeFormat("%Y"))
-        );
-
-    // Update Y axis
-    g.selectAll(".y-axis")
-        .data([null])
-        .join("g")
-        .attr("class", "y-axis")
-        .call(d3.axisLeft(y));
-
-    // Line generator
-    const line = d3.line()
-        .x(d => x(d.date))
-        .y(d => y(d.value));
-
-    // Update line
-    g.selectAll(".line")
-        .data([series])
-        .join("path")
-        .attr("class", "line")
-        .attr("fill", "none")
-        .attr("stroke", "steelblue")
-        .attr("stroke-width", 1.5)
-        .attr("d", line);
-    });
-
+  let val = +countryData[code][indicator][yearIdx];
+  return !isNaN(val) ? colorScale(val) : "#white";
 }
