@@ -68,6 +68,7 @@ function initScatterPlot(data_pca) {
         .on("end", (event) => {
           isBrushActive = false;
           if (event.selection) return;
+          clickedCountry = null;
           d3.select("#svg_plot").selectAll("circle").classed("selected", false);
           updateMapColors(
             +d3.select("#yearSlider").property("value"),
