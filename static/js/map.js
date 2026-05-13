@@ -121,7 +121,6 @@ function onMouseOverMap(event) {
     });
 }
 
-// TODO: delete?
 function onMouseOut() {
   d3.select("#svg_plot").selectAll("circle").classed("selected", false);
 
