@@ -54,7 +54,10 @@ function initScatterPlot(data_pca) {
               isBrushed(event.selection, x_axis(d.PC1), y_axis(d.PC2)),
             )
             .map((d) => d.Code);
-
+          updateMapColors(
+            +d3.select("#yearSlider").property("value"),
+            d3.select("#indicator_change").property("value")
+          );
           d3.select("#svg_map")
             .selectAll("path")
             .filter((d) => SELECTED_POINTS.includes(d.properties.id))
@@ -70,6 +73,7 @@ function initScatterPlot(data_pca) {
             +d3.select("#yearSlider").property("value"),
             d3.select("#indicator_change").property("value"),
           );
+          updateChart([]);
         }),
     )
     .append("g")
@@ -88,6 +92,7 @@ function initScatterPlot(data_pca) {
       showTooltip(event, d);
     })
     .on("mousemove", (event) => {
+      const hasActiveBrush = d3.brushSelection(d3.select("#svg_plot").node());
       if (isBrushActive || hasActiveBrush) return;
       moveTooltip(event);
     })

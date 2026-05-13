@@ -1,6 +1,6 @@
 /** global variables */
 let mapWidth = 700;
-let mapHeight = 500;
+let mapHeight = 550;
 let mapData = null;
 
 let codes = null;
@@ -20,7 +20,7 @@ function initMap(data) {
   d3.json("../static/data/world-topo.json").then((countries) => {
     let projection = d3
       .geoEqualEarth()
-      .scale(130)
+      .scale(135)
       .translate([mapWidth / 2, mapHeight / 2]);
 
     let path = d3.geoPath().projection(projection);
@@ -48,8 +48,9 @@ function initMap(data) {
         })
       .on("mousemove", event => moveTooltip(event))
       .on("mouseout", hideTooltip)
-      .on("click", (event, d) => updateChart([d.properties.id]));
-
+      .on("click", (event, d) => {
+        if (countryData[d.properties.id]) updateChart([d.properties.id]);
+      })
     updateMapColors(
       +d3.select("#yearSlider").property("value"),
       d3.select("#indicator_change").property("value"),

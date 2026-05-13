@@ -25,7 +25,10 @@ function initLinePlot(data) {
 }
 
 function updateChart(ds) {
-  if (ds.length === 0) return;
+  if (ds.length === 0) {
+      lineSvg.selectAll(".line, .legend-item").remove(); 
+      return;
+    }
 
   const INDICATOR = d3.select("#indicator_change").property("value");
   const MIN_YEAR = +d3.select("#yearSlider").property("min");
@@ -94,6 +97,7 @@ function updateChart(ds) {
 }
 
 function updateYearMarker(year) {
+  if (!lineX) return;
   lineSvg
     .selectAll(".year-marker")
     .data([year])
