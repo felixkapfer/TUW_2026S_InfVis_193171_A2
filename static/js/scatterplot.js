@@ -110,12 +110,13 @@ function initScatterPlot(data_pca) {
 function onMouseOverScatterPlot(event) {
   d3.select("#svg_plot")
     .selectAll("circle")
-    .classed("selected", (d) => d.Code == event.Code);
+    .classed("selected", (d) => d.Code == event.Code || d.Code === clickedCountry);
 
   d3.select("#svg_map")
     .selectAll("path")
     .attr("fill", (d) => {
       if (d.properties.id == event.Code) return "red";
+      if (d.properties.id === clickedCountry) return "red";
       return getColor(
         d.properties.id,
         d3.select("#indicator_change").property("value"),
