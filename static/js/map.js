@@ -14,6 +14,9 @@ function initMap(data) {
   codes = Object.entries(data).map((d) => d[0]);
   countryData = data;
 
+  // Tooltip initialization
+  initTooltip();
+
   d3.json("../static/data/world-topo.json").then((countries) => {
     let projection = d3
       .geoEqualEarth()
@@ -39,7 +42,12 @@ function initMap(data) {
       .attr("stroke", "black")
       .attr("stroke-width", 0.5)
       .attr("fill", "white")
-      .on("mouseover", (event, d) => onMouseOverMap(d))
+      .on("mouseover", (event, d) => {
+          onMouseOverMap(d);
+          showTooltip(event, d);
+        })
+      .on("mousemove", event => moveTooltip(event))
+      .on("mouseout", hideTooltip)
       .on("click", (event, d) => updateChart([d.properties.id]));
 
     updateMapColors(
