@@ -97,6 +97,7 @@ function initScatterPlot(data_pca) {
       moveTooltip(event);
     })
     .on("mouseout", () => {
+      onMouseOut();
       hideTooltip();
     });
 }
