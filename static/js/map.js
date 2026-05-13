@@ -107,15 +107,37 @@ function getColor(code, indicator, yearIdx) {
   return !isNaN(val) ? colorScale(val) : "#white";
 }
 
-
+// ###################
 // Tooltip functions
-
+// ###################
 
 function initTooltip() {
   tooltip = d3.select("body")
     .append("div")
     .attr("class", "tooltip")
     .style("opacity", 0);
+}
+
+function showTooltip(event, countryFeature) {
+
+  // Get the country ID
+  const id = countryFeature.properties.id;
+  if (!countryData[id]) return;               // If no data for this country, do not show tooltip
+
+
+  const year = +d3.select("#yearSlider").property("value");               // Get the selected year from the slider
+  const yearIdx = year - +d3.select("#yearSlider").property("min");       // Calculate the index for the data arrays based on the slider's min value
+  const indicators = Object.keys(countryData[id]).filter(k => k != "name").slice(0, 8);  // Get the list of indicators for this country, excluding the "name" property and limiting to the first 8 indicators
+
+  // Construct the HTML content for the tooltip, including the country name, year, and indicator values
+  tooltip
+    .html(
+      `<b>${countryData[id].name}</b><br>${year}<br>` +
+      indicators.map(k => `${k}: ${countryData[id][k][yearIdx]}`).join("<br>")
+    )
+    .style("left", event.pageX + 12 + "px")
+    .style("top", event.pageY + 12 + "px")
+    .style("opacity", 1);
 }
 
 
