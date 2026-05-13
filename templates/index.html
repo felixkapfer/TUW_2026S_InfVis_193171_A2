@@ -10,12 +10,15 @@
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.0/topojson.min.js"></script>
     <script src="{{url_for('static',filename='js/map.js')}}"></script>
+    <script src="{{url_for('static',filename='js/lineplot.js')}}"></script>
+    <script src="{{url_for('static',filename='js/scatterplot.js')}}"></script>
+</head>
 
 </head>
 <body>
 
 <h1>InfoVis VU 2026 - Exercise 2</h1>
-<p>Max, Ben and Felix</p>
+<p>Max Kleinegger (12041500), Ben and Felix</p>
 
 
 <div id="main_container" class="main_container">
@@ -37,6 +40,7 @@
             </option>
         {% endfor %}
     </select>
+    <input type="range" name="yearSlider" id="yearSlider" value="1"> <span id="yearValue"></span>
 </div>
 <div id="svg_line_plot" class="svg_line_plot"></div>
 
@@ -44,8 +48,56 @@
     let data = {{ data | safe }};
     let pca_data = {{ pca | safe }};
     let years = {{ years | safe }};
-    //initMap();
-    initScatterPlot(data, pca_data, years);
+
+    //assume all years are valid
+    function initSlider(years) {
+        d3.select("#yearSlider")
+            .attr("min", d3.min(years))
+            .attr("max", d3.max(years))
+            .property("value", d3.max(years))
+            .on("input", function () {
+                d3.select("#svg_plot").selectAll("circle").classed("selected", false);
+                d3.select("#yearValue").text(+this.value);
+                updateMapColors(
+                    +this.value, d3.select("#indicator_change").property("value")
+                );
+                updateYearMarker(+this.value);
+            });
+
+        d3.select("#yearValue").text(d3.max(years));
+    }
+
+
+    function initDropdown() {
+        d3.select("#indicator_change").on("change", function () {
+            const SELECTED_COUNTRIES = [];
+            d3.select("#svg_map")
+                .selectAll("path")
+                .filter(function () {
+                    return d3.select(this).attr("fill") == "red";
+                })
+                .each(function (d) {
+                    SELECTED_COUNTRIES.push(d.properties.id);
+                });
+
+            updateChart(SELECTED_COUNTRIES);
+            updateMapColors( 
+                +d3.select("#yearSlider").property("value"), 
+                d3.select(this).property("value")
+            );
+
+            d3.select("#svg_map")
+                .selectAll("path")
+                .filter(d => SELECTED_COUNTRIES.includes(d.properties.id))
+                .attr("fill", "red");
+        });
+    }
+    
+    initSlider(years);
+    initMap(data);
+    initDropdown();
+    initScatterPlot(pca_data);
+    initLinePlot(data);
 </script>
 
 </body>

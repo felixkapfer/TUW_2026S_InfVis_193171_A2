@@ -17,12 +17,17 @@ app.config['TEMPLATES_AUTO_RELOAD'] = True
 
 COUNTRIES = ['Afghanistan', 'Albania', 'Algeria', 'Angola', 'Argentina', 'Armenia', 'Australia', 'Austria', 'Azerbaijan', 'Brazil', 'Bulgaria', 'Cameroon', 'Chile', 'China', 'Colombia', 'Croatia', 'Cuba', 'Cyprus', 'Czech Republic', 'Ecuador', 'Egypt, Arab Rep.', 'Eritrea', 'Ethiopia', 'France', 'Germany', 'Ghana', 'Greece', 'India', 'Indonesia', 'Iran, Islamic Rep.', 'Iraq', 'Ireland', 'Italy', 'Japan', 'Jordan', 'Kazakhstan', 'Kenya', 'Lebanon', 'Malta', 'Mexico', 'Morocco', 'Pakistan', 'Peru', 'Philippines', 'Russian Federation', 'Syrian Arab Republic', 'Tunisia', 'Turkey', 'Ukraine']
 
+def _get_countries():
+    df = pd.read_csv("./agriRuralDevelopment_clean.csv")
+    return df[df['Name'].str.lower().isin([country.lower() for country in COUNTRIES])]
+
+def _calc_pca(df):
+    X_scaled = StandardScaler().fit_transform(df)
+    return PCA(n_components=2).fit_transform(X_scaled) 
 
 @app.route('/')
 def data():
-    df = pd.read_csv("./agriRuralDevelopment_clean.csv")
-    df = df[df['Name'].str.lower().isin([country.lower() for country in COUNTRIES])]
-
+    df = _get_countries()
 
     result = defaultdict(lambda: defaultdict(list))
 
@@ -38,12 +43,8 @@ def data():
     # Select only the most recent year
     latest_df = df[df['Year'] == df['Year'].max()]
 
-    # Scale features before PCA
-    scaler = StandardScaler()
-    X_scaled = scaler.fit_transform(latest_df.drop(columns=['Name', 'Code', 'Year']))
 
-
-    X_pca = PCA(n_components=2).fit_transform(X_scaled)
+    X_pca = _calc_pca(latest_df.drop(columns=['Name', 'Code', 'Year']))
     pca_df = pd.DataFrame({
         'Country': latest_df['Name'].values,
         "Code": latest_df['Code'].values,
