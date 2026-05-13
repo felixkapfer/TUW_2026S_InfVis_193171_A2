@@ -2,6 +2,7 @@
 let scatterPlotWidth = 400;
 let scatterPlotHeight = 500;
 let scatterPadding = 50;
+let isBrushActive = false;
 
 /** INIT METHODS */
 function initScatterPlot(data_pca) {
@@ -36,6 +37,7 @@ function initScatterPlot(data_pca) {
           [scatterPlotWidth, scatterPlotHeight],
         ])
         .on("start brush", (event) => {
+          isBrushActive = true;
           if (!event.selection) return;
 
           d3.select("#svg_plot")
@@ -61,8 +63,8 @@ function initScatterPlot(data_pca) {
           updateChart(SELECTED_POINTS);
         })
         .on("end", (event) => {
+          isBrushActive = false;
           if (event.selection) return;
-
           d3.select("#svg_plot").selectAll("circle").classed("selected", false);
           updateMapColors(
             +d3.select("#yearSlider").property("value"),
@@ -80,11 +82,18 @@ function initScatterPlot(data_pca) {
     .attr("r", 6)
     .attr("stroke", "#333")
     .on("mouseover", (event, d) => {
+      const hasActiveBrush = d3.brushSelection(d3.select("#svg_plot").node());
+      if (isBrushActive || hasActiveBrush) return;
       onMouseOverScatterPlot(d);
       showTooltip(event, d);
     })
-    .on("mousemove", (event) => moveTooltip(event))
-    .on("mouseout", hideTooltip);
+    .on("mousemove", (event) => {
+      if (isBrushActive || hasActiveBrush) return;
+      moveTooltip(event);
+    })
+    .on("mouseout", () => {
+      hideTooltip();
+    });
 }
 
 // TODO: keep selected points when changing years or dropdown
