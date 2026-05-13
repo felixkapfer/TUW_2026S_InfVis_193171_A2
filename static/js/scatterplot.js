@@ -1,6 +1,7 @@
 /** global variables */
 let scatterPlotWidth = 400;
 let scatterPlotHeight = 500;
+let scatterPadding = 50;
 
 /** INIT METHODS */
 function initScatterPlot(data_pca) {
@@ -12,16 +13,16 @@ function initScatterPlot(data_pca) {
   let x_axis = d3
     .scaleLinear()
     .domain(d3.extent(data_pca, (d) => d.PC1))
-    .range([0, scatterPlotWidth]);
+    .range([scatterPadding, scatterPlotWidth - scatterPadding]);
   scatterplot
     .append("g")
-    .attr("transform", `translate(0, ${scatterPlotHeight})`)
+    .attr("transform", `translate(0, ${scatterPlotHeight - scatterPadding})`)
     .call(d3.axisBottom(x_axis));
 
   let y_axis = d3
     .scaleLinear()
     .domain(d3.extent(data_pca, (d) => d.PC2))
-    .range([scatterPlotHeight, 0]);
+    .range([scatterPlotHeight - scatterPadding, scatterPadding]);
   scatterplot.append("g").call(d3.axisLeft(y_axis));
 
   scatterplot.selectAll("path,line").remove();
