@@ -141,6 +141,13 @@ function showTooltip(event, countryFeature) {
 }
 
 
+function moveTooltip(event) {
+  tooltip
+    .style("left", event.pageX + 12 + "px")
+    .style("top", event.pageY + 12 + "px");
+}
+
+
 function hideTooltip() {
   tooltip.style("opacity", 0);
 }
