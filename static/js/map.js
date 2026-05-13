@@ -5,6 +5,7 @@ let mapData = null;
 
 let codes = null;
 let countryData = null;
+let clickedCountry = null;
 
 let tooltip;
 
@@ -58,7 +59,16 @@ function initMap(data) {
           hideTooltip();
       })
       .on("click", (event, d) => {
-        if (countryData[d.properties.id]) updateChart([d.properties.id]);
+        if (countryData[d.properties.id]) {
+          if (clickedCountry === d.properties.id) {
+            clickedCountry = null;
+            updateChart([]);
+          } else {
+            clickedCountry = d.properties.id;
+            updateChart([d.properties.id]);
+          }
+          onMouseOut(); 
+        }
       })
     updateMapColors(
       +d3.select("#yearSlider").property("value"),
@@ -79,7 +89,10 @@ function updateMapColors(year, indicator) {
 
   d3.select("#svg_map")
     .selectAll("path")
-    .attr("fill", (d) => getColor(d.properties.id, indicator, YEAR_IDX));
+    .attr("fill", (d) => {
+      if (d.properties.id === clickedCountry) return "red";
+      return getColor(d.properties.id, indicator, YEAR_IDX);
+    }); 
 
   d3.select("#svg_plot")
     .selectAll("circle")
@@ -92,12 +105,13 @@ function onMouseOverMap(event) {
 
   d3.select("#svg_plot")
     .selectAll("circle")
-    .classed("selected", (d) => event.properties.id == d.Code);
+    .classed("selected", (d) => event.properties.id == d.Code || d.Code === clickedCountry);
 
   d3.select("#svg_map")
     .selectAll("path")
     .attr("fill", (d) => {
       if (d.properties.id == event.properties.id) return "red";
+      if (d.properties.id === clickedCountry) return "red";
       return getColor(
         d.properties.id,
         d3.select("#indicator_change").property("value"),
@@ -122,7 +136,7 @@ function getColor(code, indicator, yearIdx) {
   if (!codes.includes(code)) return "white";
 
   let val = +countryData[code][indicator][yearIdx];
-  return !isNaN(val) ? colorScale(val) : "#white";
+  return !isNaN(val) ? colorScale(val) : "white";
 }
 
 // ###################
