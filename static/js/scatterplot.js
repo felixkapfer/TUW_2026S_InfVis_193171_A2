@@ -103,8 +103,6 @@ function initScatterPlot(data_pca) {
     });
 }
 
-// TODO: keep selected points when changing years or dropdown
-
 /** EVENT HANDLERS */
 function onMouseOverScatterPlot(event) {
   d3.select("#svg_plot")

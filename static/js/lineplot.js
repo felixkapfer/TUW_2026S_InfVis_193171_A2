@@ -3,7 +3,6 @@ const margin = { top: 40, right: 160, bottom: 30, left: 60 };
 let linePlotWidth = 1000 - margin.left - margin.right;
 let linePlotHeight = 500 - margin.top - margin.bottom;
 
-// TODO: refactor to avoid global variables
 let lineSvg = null;
 let xAxis = null;
 let yAxis = null;
