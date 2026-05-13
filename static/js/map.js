@@ -156,9 +156,9 @@ function showTooltip(event, countryFeature) {
   const id = countryFeature.properties ? countryFeature.properties.id : countryFeature.Code;  // Handle both map and scatterplot cases
   if (!countryData[id]) return;               // If no data for this country, do not show tooltip
 
-
-  const year = +d3.select("#yearSlider").property("value");               // Get the selected year from the slider
-  const yearIdx = year - +d3.select("#yearSlider").property("min");       // Calculate the index for the data arrays based on the slider's min value
+  // const year = +d3.select("#yearSlider").property("value");                // Get the selected year from the slider
+  const year = +d3.select("#yearSlider").property("max");                     // Use the max year for tooltip to show the most recent data available
+  const yearIdx = year - +d3.select("#yearSlider").property("min");           // Calculate the index for the data arrays based on the slider's min value
   const indicators = Object.keys(countryData[id]).filter(k => k != "name").slice(0, 8);  // Get the list of indicators for this country, excluding the "name" property and limiting to the first 8 indicators
 
   // Construct the HTML content for the tooltip, including the country name, year, and indicator values
