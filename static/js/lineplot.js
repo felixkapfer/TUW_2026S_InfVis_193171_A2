@@ -48,10 +48,21 @@ function updateChart(ds) {
     .domain([new Date(MIN_YEAR, 0, 1), new Date(MAX_YEAR, 0, 1)])
     .range([0, linePlotWidth]);
 
+  // const y = d3.scaleLinear()
+  //   .domain([0, d3.max(series, s => d3.max(s.values, d => d.value))])
+  //   .nice()
+  //   .range([linePlotHeight, 0]);
+
+  const allValues = series.flatMap(s => s.values.map(d => d.value));
+
   const y = d3.scaleLinear()
-    .domain([0, d3.max(series, s => d3.max(s.values, d => d.value))])
+    .domain([
+      Math.min(0, d3.min(allValues)),
+      Math.max(0, d3.max(allValues))
+    ])
     .nice()
     .range([linePlotHeight, 0]);
+
 
   xAxis.call(d3.axisBottom(lineX));
   yAxis.call(d3.axisLeft(y));
