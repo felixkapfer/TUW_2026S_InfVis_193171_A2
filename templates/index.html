@@ -21,16 +21,26 @@
 <p>Max Kleinegger (12041500), Ben Schill (12347303) and Felix Kapfer (12429669)</p>
 
 
+<!-- First Container containing the map and plot -->
 <div id="main_container" class="main_container">
+
+    <!-- World Map Container -->
     <div class="container_l">
         <svg id="svg_map"></svg>
     </div>
+
+    <!-- Dot Plot Container -->
     <div class="container_r">
         <p></p>
         <svg id="svg_plot"></svg>
     </div>
 </div> 
+
+
+<!-- Filter Wrapper -->
 <div id="dropdown_div" class="dd_container">
+
+    <!-- Dropdown -->
     <label for="indicator_change">Indicator:</label>
     <select id="indicator_change" name="indicator_change" class="dropdown">
         {% for indicator in indicators %}
@@ -40,10 +50,18 @@
             </option>
         {% endfor %}
     </select>
+
+    <!-- Year Slider -->
     <input type="range" name="yearSlider" id="yearSlider" value="1"> <span id="yearValue"></span>
 </div>
+
+<!-- Line Plot Container -->
 <div id="svg_line_plot" class="svg_line_plot"></div>
 
+
+
+
+<!-- JS Section -->
 <script>
     let data = {{ data | safe }};
     let pca_data = {{ pca | safe }};
