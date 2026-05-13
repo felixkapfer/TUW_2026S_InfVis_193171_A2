@@ -43,11 +43,20 @@ function initMap(data) {
       .attr("stroke-width", 0.5)
       .attr("fill", "white")
       .on("mouseover", (event, d) => {
-          onMouseOverMap(d);
+          const hasActiveBrush = d3.brushSelection(d3.select("#svg_plot").node());
+          if (!hasActiveBrush) {
+            onMouseOverMap(d);
+          }
           showTooltip(event, d);
         })
       .on("mousemove", event => moveTooltip(event))
-      .on("mouseout", hideTooltip)
+      .on("mouseout", () => {
+          const hasActiveBrush = d3.brushSelection(d3.select("#svg_plot").node());
+          if (!hasActiveBrush) {
+            onMouseOut();
+          }
+          hideTooltip();
+      })
       .on("click", (event, d) => {
         if (countryData[d.properties.id]) updateChart([d.properties.id]);
       })
