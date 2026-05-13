@@ -98,8 +98,11 @@ function initScatterPlot(data_pca) {
       moveTooltip(event);
     })
     .on("mouseout", () => {
+      const hasActiveBrush = d3.brushSelection(d3.select("#svg_plot").node());
+    if (!isBrushActive && !hasActiveBrush) {
       onMouseOut();
-      hideTooltip();
+    }
+    hideTooltip();
     });
 }
 
