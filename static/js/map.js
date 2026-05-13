@@ -104,3 +104,13 @@ function getColor(code, indicator, yearIdx) {
   let val = +countryData[code][indicator][yearIdx];
   return !isNaN(val) ? colorScale(val) : "#white";
 }
+
+
+// Tooltip functions
+
+
+
+
+function hideTooltip() {
+  tooltip.style("opacity", 0);
+}
