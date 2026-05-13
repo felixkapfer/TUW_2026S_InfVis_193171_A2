@@ -6,6 +6,8 @@ let mapData = null;
 let codes = null;
 let countryData = null;
 
+let tooltip;
+
 /** INIT METHODS */
 
 function initMap(data) {
@@ -109,6 +111,12 @@ function getColor(code, indicator, yearIdx) {
 // Tooltip functions
 
 
+function initTooltip() {
+  tooltip = d3.select("body")
+    .append("div")
+    .attr("class", "tooltip")
+    .style("opacity", 0);
+}
 
 
 function hideTooltip() {
