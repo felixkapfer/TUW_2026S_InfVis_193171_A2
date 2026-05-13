@@ -122,12 +122,20 @@ function onMouseOverMap(event) {
 }
 
 function onMouseOut() {
-  d3.select("#svg_plot").selectAll("circle").classed("selected", false);
+  // d3.select("#svg_plot").selectAll("circle").classed("selected", false);
+
+  // updateMapColors(
+  //   +d3.select("#yearSlider").property("value"),
+  //   d3.select("#indicator_change").property("value"));
 
   updateMapColors(
-    +d3.select("#yearSlider").property("value"),
-    d3.select("#indicator_change").property("value"),
-  );
+      +d3.select("#yearSlider").property("value"),
+      d3.select("#indicator_change").property("value"),
+    );
+
+    d3.select("#svg_plot")
+      .selectAll("circle")
+      .classed("selected", (d) => d.Code === clickedCountry);
 }
 
 /** HELPER FUNCTIONS */
